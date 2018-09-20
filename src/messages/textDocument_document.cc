@@ -52,9 +52,11 @@ void MessageHandler::textDocument_documentHighlight(
     if (auto loc = getLsLocation(db, wfiles, sym, file_id)) {
       DocumentHighlight highlight;
       highlight.range = loc->range;
-      if (sym.role & Role::Write)
+      if ((sym.role & Role::Write) || (sym.role & Role::Definition) ||
+          (sym.role & Role::Declaration))
         highlight.kind = DocumentHighlight::Write;
-      else if (sym.role & Role::Read)
+      else if ((sym.role & Role::Read) || (sym.role & Role::Reference) ||
+               (sym.role & Role::Dynamic))
         highlight.kind = DocumentHighlight::Read;
       else
         highlight.kind = DocumentHighlight::Text;
