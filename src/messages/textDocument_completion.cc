@@ -418,7 +418,7 @@ public:
       if (r.Availability == CXAvailability_NotAccessible ||
           r.Availability == CXAvailability_NotAvailable)
         continue;
-      if (r.Declaration) {
+      if (r.Declaration && !context.getBaseType().isNull()) {
         Decl::Kind k = r.Declaration->getKind();
         if (k == Decl::CXXDestructor)
           continue;
@@ -433,9 +433,13 @@ public:
             continue;
         auto nk = r.Declaration->getDeclName().getNameKind();
         if (nk == DeclarationName::CXXOperatorName ||
-            nk == DeclarationName::CXXLiteralOperatorName)
+            nk == DeclarationName::CXXLiteralOperatorName ||
+            nk == DeclarationName::CXXConversionFunctionName)
           continue;
       }
+      if (R.Hidden && R.Declaration && R.Declaration->isCXXClassMember())
+        continue;
+      R.StartsNestedNameSpecifier = false;
 
       CodeCompletionString *ccs = r.CreateCodeCompletionString(
           s, context, getAllocator(), getCodeCompletionTUInfo(),
