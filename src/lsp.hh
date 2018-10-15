@@ -270,4 +270,11 @@ enum class LanguageId {
   Cuda = 4,
 };
 
+struct Command {
+  std::string title;
+  std::string command;
+  std::vector<std::string> arguments;
+};
+REFLECT_STRUCT(Command, title, command, arguments);
+
 } // namespace ccls

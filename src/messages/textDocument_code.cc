@@ -51,17 +51,11 @@ struct Cmd_xref {
   Kind kind;
   std::string field;
 };
-struct Command {
-  std::string title;
-  std::string command;
-  std::vector<std::string> arguments;
-};
 struct CodeLens {
   lsRange range;
   std::optional<Command> command;
 };
 REFLECT_STRUCT(Cmd_xref, usr, kind, field);
-REFLECT_STRUCT(Command, title, command, arguments);
 REFLECT_STRUCT(CodeLens, range, command);
 
 template <typename T> std::string toString(T &v) {

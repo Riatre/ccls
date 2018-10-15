@@ -38,6 +38,7 @@ void reflect(JsonWriter &vis, CompletionItem &v) {
   REFLECT_MEMBER(textEdit);
   if (v.additionalTextEdits.size())
     REFLECT_MEMBER(additionalTextEdits);
+  REFLECT_MEMBER(command);
   reflectMemberEnd(vis);
 }
 
@@ -376,6 +377,11 @@ void buildItem(const CodeCompletionResult &r, const CodeCompletionString &ccs,
       } else if (kind != CodeCompletionString::CK_Informative) {
         out[i].textEdit.newText += text;
       }
+      if (kind == CodeCompletionString::CK_LeftParen) {
+        out[i].command = {"", "editor.action.triggerParameterHints", {}};
+      } else {
+        out[i].command.reset();
+      }
     }
   }
 
@@ -383,8 +389,12 @@ void buildItem(const CodeCompletionResult &r, const CodeCompletionString &ccs,
     for (auto i = first; i < out.size(); ++i) {
       // ' : ' for variables,
       // ' -> ' (trailing return type-like) for functions
-      out[i].label += (out[i].label == out[i].filterText ? " : " : " -> ");
-      out[i].label += result_type;
+      if (!g_config->completion.detailedLabel) {
+        out[i].label += (out[i].label == out[i].filterText ? " : " : " -> ");
+        out[i].label += result_type;
+      } else {
+        out[i].detail = result_type;
+      }
     }
 }
 
@@ -437,9 +447,9 @@ public:
             nk == DeclarationName::CXXConversionFunctionName)
           continue;
       }
-      if (R.Hidden && R.Declaration && R.Declaration->isCXXClassMember())
+      if (r.Hidden && r.Declaration && r.Declaration->isCXXClassMember())
         continue;
-      R.StartsNestedNameSpecifier = false;
+      r.StartsNestedNameSpecifier = false;
 
       CodeCompletionString *ccs = r.CreateCodeCompletionString(
           s, context, getAllocator(), getCodeCompletionTUInfo(),
@@ -448,7 +458,8 @@ public:
       ls_item.kind = getCompletionKind(context.getKind(), r);
       if (const char *brief = ccs->getBriefComment())
         ls_item.documentation = brief;
-      ls_item.detail = ccs->getParentContextName().str();
+      if (!g_config->completion.detailedLabel)
+        ls_item.detail = ccs->getParentContextName().str();
 
       size_t first_idx = ls_items.size();
       ls_items.push_back(ls_item);

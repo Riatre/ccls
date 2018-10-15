@@ -109,6 +109,7 @@ struct CompletionItem {
   InsertTextFormat insertTextFormat = InsertTextFormat::PlainText;
   TextEdit textEdit;
   std::vector<TextEdit> additionalTextEdits;
+  std::optional<Command> command;
 
   std::vector<std::string> parameters_;
   int score_;
